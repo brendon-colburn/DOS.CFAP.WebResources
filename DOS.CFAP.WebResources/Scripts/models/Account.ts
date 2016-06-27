@@ -1,4 +1,4 @@
-﻿namespace DOS.CFAP.WebResources {
+﻿module DOS.CFAP.WebResources {
     export class Account extends Entity {
         public name: string;
         public _primarycontactid_value: string;

@@ -7,7 +7,7 @@
 
         constructor(private $http: ng.IHttpService) { }
 
-        retrieve<T>(e: Entity, params?: any) {
+        retrieve<T>(e: Entity, params?: IParams) {
             let url = this.BaseUrl + e.route + "(" + e.id + ")";
             if (params != undefined) url = this.addParams(url, params);
             return this.$http.get<T>(url);
@@ -18,7 +18,7 @@
             return this.$http.post<T>(url, e);
         }
 
-        retrieveMultiple<T>(e: Entity, params?: any) {
+        retrieveMultiple<T>(e: Entity, params?: IParams) {
             let url = this.BaseUrl + e.route;
             if (params != undefined) url = this.addParams(url, params);
             return this.$http.get<T>(url);
@@ -29,7 +29,12 @@
             return this.$http.patch<T>(url, e);
         }
 
-        addParams(url: string, params: any): string {
+        remove<T>(e: Entity) {
+            let url = this.BaseUrl + e.route;
+            return this.$http.delete<T>(url);
+        }
+
+        addParams(url: string, params: IParams): string {
             url += "?";
             angular.forEach(Object.keys(params), function (v, k) {
                 if (k == 0 || k == this.length)

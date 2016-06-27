@@ -73,6 +73,10 @@ var DOS;
                     var url = this.BaseUrl + e.route;
                     return this.$http.patch(url, e);
                 };
+                WebApi.prototype.remove = function (e) {
+                    var url = this.BaseUrl + e.route;
+                    return this.$http.delete(url);
+                };
                 WebApi.prototype.addParams = function (url, params) {
                     url += "?";
                     angular.forEach(Object.keys(params), function (v, k) {
@@ -96,10 +100,14 @@ var DOS;
 /// <reference path="typings/jquery/jquery.d.ts" />
 /// <reference path="typings/xrm/xrm.d.ts" />
 /// <reference path="interfaces/iaccount.ts" />
+/// <reference path="interfaces/IRetrieveMultipleData.ts" />
+/// <reference path="interfaces/iparams.ts" />
 /// <reference path="interfaces/iwebapi.ts" />
 /// <reference path="models/entity.ts" />
 /// <reference path="models/account.ts" />
 /// <reference path="services/webapi.ts" />
+/// <reference path="../../dos.cfap.webresources/scripts/_all.ts" />
+/// <reference path="controllers/testctrl.ts" />
 /// <reference path="../_all.ts" />
 var DOS;
 (function (DOS) {
@@ -113,17 +121,34 @@ var DOS;
                     this.$webapi = $webapi;
                     this.$scope = $scope;
                     $scope.vm = this;
-                    $webapi.retrieveMultiple(new WebResources.Account).then(function (accounts) {
-                        $scope.accounts = accounts;
+                    $webapi.retrieveMultiple(new WebResources.Account).then(function (resp) {
+                        if (resp.status != 200)
+                            return;
+                        $scope.accounts = resp.data.value;
                         console.log($scope.accounts);
                         _this.getAccount();
                     });
                 }
                 testCtrl.prototype.getAccount = function () {
-                    var a = this.$scope.accounts[0];
-                    this.$webapi.retrieve(a).then(function (data) {
-                        console.log(data);
+                    var a = new WebResources.Account(this.$scope.accounts[0]);
+                    this.$webapi.retrieve(a, { $select: 'name' }).then(function (resp) {
+                        console.log(resp.data);
                     });
+                };
+                testCtrl.prototype.createAccount = function () {
+                    var a = new WebResources.Account({
+                        name: "New Account"
+                    });
+                    this.$webapi.create(a);
+                };
+                testCtrl.prototype.updateAccount = function () {
+                    var a = new WebResources.Account(this.$scope.accounts[0]);
+                    a.name = "Updated Value";
+                    this.$webapi.update(a);
+                };
+                testCtrl.prototype.deleteAccount = function (selectedAccount) {
+                    var a = new WebResources.Account(selectedAccount);
+                    this.$webapi.remove(a);
                 };
                 testCtrl.$inject = [
                     '$webapi',
@@ -135,8 +160,6 @@ var DOS;
         })(WebResources = CFAP.WebResources || (CFAP.WebResources = {}));
     })(CFAP = DOS.CFAP || (DOS.CFAP = {}));
 })(DOS || (DOS = {}));
-/// <reference path="../../dos.cfap.webresources/scripts/_all.ts" />
-/// <reference path="controllers/testctrl.ts" />
 /// <reference path="_all.ts" />
 var DOS;
 (function (DOS) {
@@ -144,7 +167,7 @@ var DOS;
     (function (CFAP) {
         var WebResources;
         (function (WebResources) {
-            angular.module('app')
+            angular.module('app', [])
                 .service('$webapi', WebResources.WebApi)
                 .controller('testCtrl', WebResources.testCtrl);
         })(WebResources = CFAP.WebResources || (CFAP.WebResources = {}));
